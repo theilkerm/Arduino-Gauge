@@ -13,6 +13,9 @@
 
 TM1637Display display(CLK, DIO);
 
+//revlimit relay pins
+#define RELAY1 6
+
 // read the hall effect sensor
 const int hallPin = 9;
 const unsigned long sampleTime = 100;
@@ -33,6 +36,7 @@ const uint8_t SEG_RACE[] = {
 
 void setup()
 {
+  pinMode(RELAY1, OUTPUT);
   display.setBrightness(0x0f);
   display.setSegments(SEG_ITU);
   delay(1000);
@@ -52,6 +56,8 @@ void loop()
     int velocity = getVelocity();
     display.showNumberDec(velocity, false);
  */
+  //REVLIMITER Setted to 6500rpm
+  revLimit();
  }
 
 int getRPM()
@@ -84,4 +90,15 @@ int getVelocity()
   int rpm = getRPM();
   int velocity = int(rpm * 0.01315974);
   return velocity;
+}
+
+
+boolean revLimit()
+{
+  int rpm = getRPM();
+  if(rpm>6500){
+    digitalWrite(RELAY1,HIGH);
+  } else {
+    digitalWrite(RELAY1,LOW);
+  }
 }
