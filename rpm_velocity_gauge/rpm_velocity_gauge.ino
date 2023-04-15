@@ -13,9 +13,12 @@
 
 TM1637Display display(CLK, DIO);
 
+//revlimit relay pins
+#define RELAY1 6
+
 // read the hall effect sensor
 const int hallPin = 9;
-const unsigned long sampleTime = 1000;
+const unsigned long sampleTime = 100;
 const int maxRPM = 10200;
 
 const uint8_t SEG_ITU[] = {
@@ -33,6 +36,7 @@ const uint8_t SEG_RACE[] = {
 
 void setup()
 {
+  pinMode(RELAY1, OUTPUT);
   display.setBrightness(0x0f);
   display.setSegments(SEG_ITU);
   delay(1000);
@@ -46,11 +50,15 @@ void loop()
 {
   int rpm = getRPM();
   display.showNumberDec(rpm, false);
-  delay(200);
-  int velocity1 = getVelocity();
-  display.showNumberDec(velocity1, false);
   delay(100);
-}
+  /* 
+    Velocity section is not necessary for me
+    int velocity = getVelocity();
+    display.showNumberDec(velocity, false);
+ */
+  //REVLIMITER Setted to 6500rpm
+  revLimit();
+ }
 
 int getRPM()
 {
@@ -72,14 +80,25 @@ int getRPM()
     }
     currentTime = millis() - startTime;
   }
-  int kount2rpm = int(60000. / float(sampleTime)) * kount;
+  int kount2rpm = int(6000. / float(sampleTime)) * kount;
   return kount2rpm;
 }
 
 int getVelocity()
-// revolutions per minute to velocity by gear ratio 11 toot engine, 40 tooth axle, 11" diameter wheel to km/h
+// revolutions per minute to velocity by gear ratio 11 toot engine, 44 tooth axle, 11" diameter wheel to km/h
 {
   int rpm = getRPM();
-  int velocity = int(rpm * 0.01447);
+  int velocity = int(rpm * 0.01315974);
   return velocity;
+}
+
+
+boolean revLimit()
+{
+  int rpm = getRPM();
+  if(rpm>6500){
+    digitalWrite(RELAY1,HIGH);
+  } else {
+    digitalWrite(RELAY1,LOW);
+  }
 }
